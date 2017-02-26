@@ -1,0 +1,18 @@
+{
+  "manifest_version": 2,
+
+  "name": "Youtube Playlist Highlighter",
+  "description": "This extension Highlights the current track in a description playlist",
+  "version": "1.0",
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["scanPlaylist.js"]
+    }
+  ],
+
+  "permissions": [
+    "activeTab"
+  ]
+}
