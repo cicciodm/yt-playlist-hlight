@@ -1,9 +1,17 @@
+function getCurrentTimeAsString() {
+    return document.getElementsByClassName("ytp-time-current")[0].innerHTML;
+}
+
 function convertToSeconds(secondsAsString) {
     const [min, secs] = secondsAsString.split(":").map(str => Number.parseInt(str));
     return min * 60 + secs;
 }
 
-function setIdForPlaylistLinks(children) {
+function getCurrentTimeInSeconds() {
+    return convertToSeconds(getCurrentTimeAsString());
+}
+
+function getIdForPlaylistLinks(children) {
     let times = [];
     for (let i = 0; i < children.length; i++) {
         const elem = children[i];
@@ -29,34 +37,46 @@ function markPlaylistLinkAt(time) {
 
 function listen(index, times) {
     setTimeout(function() {
-        if (index == times.length) {
+        if (index == times.length - 1) {
             return;
         }
 
-        const currentTime = convertToSeconds(document.getElementsByClassName("ytp-time-current")[0].innerHTML);
-        const prev = times[index - 1];
-        
-        if (currentTime >= prev) {
-            const highlighted = document.getElementById(prev + "");
-            highlighted.style.backgroundColor = "none";
+        const currentTime = getCurrentTimeInSeconds();
+        const startTimeOfNextTrack = times[index + 1];
 
-            const curr = times[index];
-            const currElement = document.getElementById(curr + "");
-            currElement.style.backgroundColor = "red";
+        if (currentTime >= startTimeOfNextTrack) {
+            const startOfCurrent = times[index];
+            const highlighted = document.getElementById(startOfCurrent + "");
+            highlighted.style.backgroundColor = "red";
+
+            const currElement = document.getElementById(startTimeOfNextTrack + "");
+            currElement.style.backgroundColor = "yellow";
             index++;
         }
         listen(index, times);
     }, 1000);
 }
 
-function startListening(times) {    
-    const index = 1;
+function startListeningFromTime(times, currentTime) {    
+    let index = times.findIndex((time) => {
+        return time > currentTime;
+    });
 
+    index = index !== -1 ? index - 1 : -1;
+    
     listen(index, times);
 }
 
+function markAllPlaylistLinksUntil(times, currentTime) {
+    let index = 0;
+
+    while(times[index] < currentTime) {
+        markPlaylistLinkAt(times[index]);
+        index++;
+    }
+}
+
 function startPlaylistHighliting() {
-    console.log("executing");
     const description = document.getElementById("eow-description");
     const children = description.childNodes;
 
@@ -64,12 +84,12 @@ function startPlaylistHighliting() {
         return;
     }
     
-    const times = setIdForPlaylistLinks(children);
-    markPlaylistLinkAt(0);
+    const times = getIdForPlaylistLinks(children);
+    const currentTime = getCurrentTimeInSeconds();
 
-    startListening(times);
+    markAllPlaylistLinksUntil(times, currentTime);
+
+    startListeningFromTime(times, currentTime);
 }
 
-
 startPlaylistHighliting();
-
